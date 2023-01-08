@@ -59,7 +59,8 @@ router.post('/login',async(req,res)=>{
                 console.log(token);
                 res.status(200).json({
                     message:"Successfully logged in",
-                    token
+                    token,
+                    userData: checkUser
                 });
             }else{
                 res.status(422).json({error:"Incorrect password"});
