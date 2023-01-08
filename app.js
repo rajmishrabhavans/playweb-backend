@@ -1,9 +1,11 @@
 require('dotenv').config(); //to save sensitive information on .env file
 const express= require('express');
+const cors= require('cors');
 require('./db/conn')  //connect to DB
 const app= express();
 
 const PORT= process.env.PORT || 8000;
+app.use(cors());
 app.use(express.json())  //to get data from user as json format
 app.use(require('./router/auth'));  //all restAPi calls
 
