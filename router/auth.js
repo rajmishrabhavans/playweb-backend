@@ -52,10 +52,10 @@ router.post('/login',async(req,res)=>{
             const checkPass = await bcrypt.compare(password,checkUser.password);
             if(checkPass){
                 const token = await checkUser.generateAuthToken();
-                // res.cookie('jwtoken',token,{
-                //     expires: new Date(Date.now()+2592000000),
-                //     httpOnly:false
-                // })
+                res.cookie('jwtoken',token,{
+                    expires: new Date(Date.now()+2592000000),
+                    httpOnly:false
+                })
                 res.status(200).json({
                     message:"Successfully logged in",
                     token
