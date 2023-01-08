@@ -3,7 +3,9 @@ const User = require('../model/userSchema');
 
 const authenticate = async(req,res,next) => {
     try {
-        const cookies = req.headers.cookie;
+        const cookies = req.body.cookie;
+        // console.log("Cookies: ",cookies);
+        // console.log("Headers: ",req.body);
         if(!cookies){
             return res.status(401).json({error:"token not found!"});
         }

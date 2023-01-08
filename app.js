@@ -5,6 +5,8 @@ require('./db/conn')  //connect to DB
 const app= express();
 
 const PORT= process.env.PORT || 8000;
+
+// app.options('*', cors())
 app.use(cors({credentials: true, origin: ['https://golden-praline-70af4e.netlify.app','http://localhost:3000']}));
 app.use(express.json())  //to get data from user as json format
 app.use(require('./router/auth'));  //all restAPi calls

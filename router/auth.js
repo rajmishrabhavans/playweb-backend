@@ -56,6 +56,7 @@ router.post('/login',async(req,res)=>{
                     expires: new Date(Date.now()+2592000000),
                     httpOnly:false
                 })
+                console.log(token);
                 res.status(200).json({
                     message:"Successfully logged in",
                     token
@@ -73,7 +74,7 @@ router.post('/login',async(req,res)=>{
 });
 
 //for contact us and home page
-router.get('/getdata',authenticate, (req,res)=>{
+router.post('/getdata',authenticate, (req,res)=>{
     // console.log('my user data');
     res.send(req.rootUser);
 });
@@ -86,7 +87,7 @@ router.post('/logout',authenticate, async(req,res)=>{
     // console.log(tokens);
     // console.log(tokens.filter((t)=>{console.log("Tokens: ",t.token,"\nToken: ",req.token,"\n",t.token===req.token,"\n");}));
     rootUser.tokens= tokens.filter((t)=>{return t.token!==req.token});
-    res.clearCookie("jwtoken",{path:"/"});
+    // res.clearCookie("jwtoken",{path:"/"});
     await rootUser.save();
     res.send({msg:"Logout successful"});
 });
