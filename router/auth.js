@@ -10,13 +10,28 @@ router.get('/', (req,res)=>{
     res.send('home page')
 });
 
+//check if a email or phone already exists
+router.post('/checkUser',async(req,res)=>{
+    const {email,phone} = req.body;
+
+    if(email){
+    const haveEmail= await User.findOne({email});
+    if(haveEmail) return res.json({error: "email"});
+    }
+    if(phone){
+    const havePhone= await User.findOne({phone});
+    if(havePhone) return res.json({error: "phone"});
+    }
+    return res.json({msg: "ok"});
+})
+
 //validating and adding users data to DB
 router.post('/register',async(req,res)=>{
     try {
         //getting necessary data from user
         const {name,email,phone,gender,work,password} = req.body;
         let creationdate= req.body.creationdate;
-        console.log(req.body);
+        // console.log(req.body);
 
         //checking that all required fiels are given by user
         if(!name || !email || !phone || !password || !gender){
@@ -26,8 +41,8 @@ router.post('/register',async(req,res)=>{
         //check if phone and email already exists
         const haveEmail= await User.findOne({email});
         const havePhone= await User.findOne({phone});
-        if(haveEmail) return res.status(422).json({error: "Email already exists"});
-        if(havePhone) return res.status(422).json({error: "Phone already exists"});
+        if(haveEmail) return res.status(422).json({error: "email"});
+        if(havePhone) return res.status(422).json({error: "phone"});
 
         // console.log(req.body);
         //creating new user with given details
