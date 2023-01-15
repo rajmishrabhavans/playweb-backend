@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../model/userSchema');
+const { sendError } = require('../utils/helper');
 
 const authenticate = async(req,res,next) => {
     try {
@@ -14,8 +15,10 @@ const authenticate = async(req,res,next) => {
         // console.log(cookie);
         const token= cookie;
         const verifyToken = jwt.verify(token,process.env.SECRET_KEY);
+        
+        // console.log("Token : ",verifyToken);
         const rootUser = await User.findOne({_id:verifyToken._id, "tokens.token":token});
-        if(!rootUser){throw new Error('User not found!')};
+        if(!rootUser) return sendError(res,"User not found",404)
 
         req.token= token;
         req.rootUser= rootUser;

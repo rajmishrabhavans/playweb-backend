@@ -26,6 +26,11 @@ const userSchema= new mongoose.Schema({
         type:String,
         required:true
     },
+    verified:{
+        type: Boolean,
+        default:false,
+        required:true
+    },
     creationdate:{
         type:String,
     },
@@ -39,18 +44,13 @@ const userSchema= new mongoose.Schema({
     messages:[
         {
             name:{
-                type:String,
-                required:true
+                type:String
             },
             email:{
-                type:String,
-                required:true,
-                unique:true
+                type:String
             },
             phone:{
-                type:Number,
-                required:true,
-                unique:true
+                type:Number
             },
             message:{
                 type:String

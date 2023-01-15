@@ -3,7 +3,10 @@ const router = express.Router();
 const User = require('../model/userSchema');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const authenticate = require('../middleware/authenticate')
+const VerificationToken = require('../model/verificationToken');
+const authenticate = require('../middleware/authenticate');
+const { generateOTP, sendMail, verifyEmail, isEmailVerified } = require('../utils/mail');
+const { sendError } = require('../utils/helper');
 
 
 router.get('/', (req,res)=>{
@@ -28,10 +31,11 @@ router.post('/checkUser',async(req,res)=>{
 //validating and adding users data to DB
 router.post('/register',async(req,res)=>{
     try {
-        //getting necessary data from user
-        const {name,email,phone,gender,work,password} = req.body;
-        let creationdate= req.body.creationdate;
         // console.log(req.body);
+        //getting necessary data from user
+        const {name,email,phone,gender,password} = req.body;
+        let creationdate= req.body.creationdate;
+        console.log(req.body);
 
         //checking that all required fiels are given by user
         if(!name || !email || !phone || !password || !gender){
@@ -46,11 +50,24 @@ router.post('/register',async(req,res)=>{
 
         // console.log(req.body);
         //creating new user with given details
+        
         if(!creationdate) creationdate= new Date().toLocaleString();
         const newUser= new User({name,email,phone,gender,password,creationdate});
+
+        const token = await newUser.generateAuthToken();
+        res.cookie('jwtoken',token,{
+            expires: new Date(Date.now()+(1000*60*60)),
+            httpOnly:false
+        })
+        console.log(token);
+
         await newUser.save();  //adding user to DB
         console.log(newUser);
-        res.status(201).json({message:"Data submitted successfully"})
+        res.status(201).json({
+            message:"User Registeration successful",
+            token,
+            userData: newUser
+        });
     }catch (error) {
         console.log(error);
     }
@@ -107,6 +124,7 @@ router.post('/logout',authenticate, async(req,res)=>{
     await rootUser.save();
     res.send({msg:"Logout successful"});
 });
+
 //for contact us message
 router.post('/contact',authenticate, async(req,res)=>{
     try {
@@ -126,9 +144,39 @@ router.post('/contact',authenticate, async(req,res)=>{
         console.log(error);
     }
 });
-router.get('/contact',(req,res)=>{
-    res.send('contact page')
-});
+
+router.post('/sendemail',authenticate,async(req,res)=>{
+    newUser= req.rootUser;
+    console.log(newUser);
+    if(!newUser) return sendError(res,'User not Found');
+    if (newUser.verified) return sendError(res, 'User already Verified');
+
+    const token = await VerificationToken.findOne({ owner: newUser._id });
+    console.log('Verification token ',token)
+    if (token){                
+        await VerificationToken.findByIdAndDelete(token._id);
+    }
+
+    const OTP= generateOTP();
+    const verificationToken= new VerificationToken({
+        owner: newUser._id,
+        token:OTP
+    })
+    
+    await verificationToken.save();
+    await sendMail({
+        from:process.env.MAIL_USERNAME2,
+        to: newUser.email,
+        subject: "Verify your email address",
+        html:`<h1>Your otp to verify email is ${OTP}</h1>`
+    });
+    console.log("Email successfully sent to "+newUser.email);
+    
+})
+
+router.post('/verifyemail',authenticate,verifyEmail);
+
+router.post('/isEmailVerified',authenticate,isEmailVerified);
 
 
 module.exports = router;
