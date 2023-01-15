@@ -7,7 +7,7 @@ const VerificationToken = require('../model/verificationToken');
 const authenticate = require('../middleware/authenticate');
 const { generateOTP, sendMail, verifyEmail, isEmailVerified } = require('../utils/mail');
 const { sendError } = require('../utils/helper');
-const { setSensorData } = require('../utils/esp32');
+const { setSensorData, getSensorData } = require('../utils/esp32');
 
 
 router.get('/', (req,res)=>{
@@ -180,6 +180,7 @@ router.post('/verifyemail',authenticate,verifyEmail);
 router.post('/isEmailVerified',authenticate,isEmailVerified);
 
 router.post('/setSensorData',setSensorData);
+router.post('/getSensorData',getSensorData);
 
 
 module.exports = router;
