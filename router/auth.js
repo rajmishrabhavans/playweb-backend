@@ -180,7 +180,7 @@ router.post('/verifyemail',authenticate,verifyEmail);
 router.post('/isEmailVerified',authenticate,isEmailVerified);
 
 router.post('/setSensorData',setSensorData);
-router.post('/getSensorData',getSensorData);
+router.post('/getSensorData',authenticate,getSensorData);
 
 
 module.exports = router;
