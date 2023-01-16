@@ -6,14 +6,14 @@ exports.setSensorData = async (req, res) => {
     console.log(req.body);
     Object.entries(sensorData).forEach((e) => {if(espData[e[0]]!==undefined){espData[e[0]]= e[1]}});
     //console.log("espData: ",espData);
-    res.json({msg:"Sensor data recieved",status:'ok'})
+    res.json({msg:"Sensor data recieved",udata:updateEspData});
 }
 
 exports.getSensorData = async (req, res) => {
     if(!espData){
         sendError("Data not found!",404);
     }
-    console.log("espData: ",espData);
+    console.log("getEspData: ",espData);
     res.json({data:espData,status:'ok'})
 }
 
