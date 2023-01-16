@@ -1,4 +1,4 @@
-const { espData } = require("../db/espData");
+const { espData, updateEspData } = require("../db/espData");
 const { sendError } = require("./helper");
 
 exports.setSensorData = async (req, res) => {
@@ -10,10 +10,22 @@ exports.setSensorData = async (req, res) => {
 }
 
 exports.getSensorData = async (req, res) => {
-    console.log(espData);
     if(!espData){
         sendError("Data not found!",404);
     }
     console.log("espData: ",espData);
     res.json({data:espData,status:'ok'})
+}
+
+exports.updateSensorData = async (req, res) => {
+    const sensorData= req.body.data;
+    // console.log(sensorData.buildLed);
+    if(sensorData.buildLed!==undefined){
+    updateEspData.buildLed= sensorData.buildLed;
+    }
+    if(sensorData.motorOn!==undefined){
+    updateEspData.motorOn= sensorData.motorOn;
+    }
+    console.log('updated data: ',updateEspData);
+    res.json({msg:"Sensor data updated",status:'ok'})
 }
