@@ -116,6 +116,7 @@ router.post('/getdata',authenticate, (req,res)=>{
 //for logging out
 router.post('/logout',authenticate, async(req,res)=>{
     // console.log('my user data');
+    try{
     rootUser= req.rootUser;
     tokens= rootUser.tokens;
     // console.log(tokens);
@@ -124,6 +125,10 @@ router.post('/logout',authenticate, async(req,res)=>{
     // res.clearCookie("jwtoken",{path:"/"});
     await rootUser.save();
     res.send({msg:"Logout successful"});
+    }catch(error){
+        console.log(error);
+        sendError(res,"Failed to logout")
+    }
 });
 
 //for contact us message
