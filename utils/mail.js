@@ -1,4 +1,4 @@
-const { isValidObjectId } = require('mongoose');
+// const { isValidObjectId } = require('mongoose');
 const nodemailer = require('nodemailer');
 const { google } = require('googleapis');
 const OAuth2 = google.auth.OAuth2;
@@ -17,7 +17,8 @@ exports.generateOTP = () => {
   return otp;
 }
 
-async function sendMail(details) {
+// other way to export function
+async function sendMail(details,res) {
   try {
     const { from, to, subject, html } = details;
     const oauth2Client = new OAuth2(
@@ -26,7 +27,7 @@ async function sendMail(details) {
       "https://developers.google.com/oauthplayground" // Redirect URL
     );
     oauth2Client.setCredentials({
-      refresh_token: process.env.MAIL_REFRESH_TOKEN
+      refresh_token: process.env.MAIL_REFRESH_TOKEN,
     });
     const accessToken = await oauth2Client.getAccessToken();
     const smtpTransport = nodemailer.createTransport({
@@ -57,51 +58,60 @@ async function sendMail(details) {
     });
   } catch (error) {
     console.log(error);
-    sendError(res,"Unable to send Email")
+    throw new Error("Unable to send Email");
   }
 }
 
 exports.isEmailVerified = async (req, res) => {
-  const userID = req.userID;
-  const user = await User.findById(userID);
-  if (!user) return res.json({ msg: 'not found' });
-  else return res.json({ msg: 'found' });
+  const userEmail= req.body.email;
+  console.log(userEmail);
+  const user= await User.findOne({email:userEmail});
+  if (!user) return res.json({ msg: 'user not found' });
+  const verified= user.verified;
+  if (!verified) return res.json({ msg: 'not verified' });
+  else return res.json({ msg: 'verified' });
+}
+
+exports.verifyOtpToken = async(email,otp)=>{
+  try{
+    console.log(email);
+    const user = await User.findOne({email:email});
+    if (!user) return 'Sorry User not found';
+    // console.log("User : ",user);
+    // if (user.verified) return sendError(res, 'User already Verified');
+    const token = await VerificationToken.findOne({ owner: user._id });
+    if (!token) return 'Sorry Token not found';
+    const isMatched = await token.compareToken(otp);
+    console.log("Matched : ", isMatched);
+    if (!isMatched) return "invalid otp";
+    user.verified = true;
+    await verificationToken.findByIdAndDelete(token._id);
+    await user.save();
+    return true;
+  }catch(error){
+    console.log(error);
+    return "failed to verify email";
+  }
 }
 
 exports.verifyEmail = async (req, res) => {
   try {
-    const userID = req.userID;
-    const otp = req.body.otp;
-    if (!userID || !otp) {
+    userEmail= req.body.email;
+    otp = req.body.otp;
+    console.log(userEmail);
+    if (!userEmail || !otp) {
       return sendError(res, "Invalid request missing parameters")
     }
-    if (!isValidObjectId(userID)) {
-      return sendError(res, "Invalid user id")
-    }
-    const user = await User.findById(userID);
-    if (!user) return sendError(res, 'Sorry User not found');
-
-    if (user.verified) return sendError(res, 'User already Verified');
-    const token = await VerificationToken.findOne({ owner: user._id });
-    if (!token) return sendError(res, 'Sorry User not found');
-    const isMatched = await token.compareToken(otp);
-    console.log(req.body, isMatched);
-    if (!isMatched) return sendError(res, 'Please provide valid otp');
-    user.verified = true;
-    await verificationToken.findByIdAndDelete(token._id);
-    await user.save();
-
-    sendMail({
-      from: process.env.MAIL_USERNAME2,
-      to: user.email,
-      subject: "Email Verification Success",
-      html: `<h1>Your email has been verified successfully</h1>`,
-    })
-    // console.log(status);
+    const checkVerified= this.verifyOtpToken(userEmail,otp);
+    if(checkVerified){
     res.json({ msg: "Email verified Successfully" });
+    }else{
+      sendError(res,checkVerified);
+    }
   } catch (error) {
     console.log(error);
     sendError(res,"Unable to verify Email")
+    return false;
   }
 }
 

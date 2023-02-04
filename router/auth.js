@@ -5,9 +5,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const VerificationToken = require('../model/verificationToken');
 const authenticate = require('../middleware/authenticate');
-const { generateOTP, sendMail, verifyEmail, isEmailVerified } = require('../utils/mail');
+const { generateOTP, sendMail, verifyEmail, isEmailVerified, verifyOtpToken } = require('../utils/mail');
 const { sendError } = require('../utils/helper');
-const { setSensorData, getSensorData,updateSensorData } = require('../utils/esp32');
+const { setSensorData, getSensorData,updateSensorData, setEspConfigData, getEspConfigData, fetchEspConfigData, saveSupplyList, getSupplyList } = require('../utils/esp32');
 
 
 router.get('/', (req,res)=>{
@@ -29,7 +29,7 @@ router.post('/checkUser',async(req,res)=>{
     return res.json({msg: "ok"});
 })
 
-//validating and adding users data to DB
+// validating and registering users data to DB
 router.post('/register',async(req,res)=>{
     try {
         // console.log(req.body);
@@ -74,6 +74,7 @@ router.post('/register',async(req,res)=>{
     }
 });
 
+// verifying if user is registered and logging user with an authentication token
 router.post('/login',async(req,res)=>{
     try {
         //getting email and pass to variable email and password using destructuring
@@ -115,7 +116,6 @@ router.post('/getdata',authenticate, (req,res)=>{
 
 //for logging out
 router.post('/logout',authenticate, async(req,res)=>{
-    // console.log('my user data');
     try{
     rootUser= req.rootUser;
     tokens= rootUser.tokens;
@@ -151,42 +151,91 @@ router.post('/contact',authenticate, async(req,res)=>{
     }
 });
 
-router.post('/sendemail',authenticate,async(req,res)=>{
-    newUser= req.rootUser;
-    console.log(newUser);
-    if(!newUser) return sendError(res,'User not Found');
-    if (newUser.verified) return sendError(res, 'User already Verified');
+// for sending mail to users email for verification
+router.post('/sendemail',async(req,res)=>{
+    try{
+        const userEmail= req.body.email;
+        const userSubject= req.body.subject;
+        const userContent= req.body.content;
+        console.log(userEmail);
+        newUser= await User.findOne({email:userEmail});
+        if(!newUser) return sendError(res,'User not Found');
+        // if (newUser.verified) return sendError(res, 'User already Verified');
 
-    const token = await VerificationToken.findOne({ owner: newUser._id });
-    console.log('Verification token ',token)
-    if (token){                
-        await VerificationToken.findByIdAndDelete(token._id);
+        const token = await VerificationToken.findOne({ owner: newUser._id });
+        console.log('Verification token ',token)
+        if (token){                
+            await VerificationToken.findByIdAndDelete(token._id);
+        }
+
+        let htmlContent;
+        let mailSubject;
+        if(!userContent || !userSubject){
+            const OTP= generateOTP();
+            mailSubject= "Verify your Email Address"
+            htmlContent = `<h1>Your otp to verify email is ${OTP}</h1>`;
+            const verificationToken= new VerificationToken({
+                owner: newUser._id,
+                token:OTP
+            });
+            await verificationToken.save();
+        }else{
+            htmlContent = userContent;
+            mailSubject= userSubject;
+        }
+        
+        await sendMail({
+            from:process.env.MAIL_USERNAME2,
+            to: userEmail,
+            subject: "Verify your email address",
+            html:htmlContent
+        });
+        console.log("Email successfully sent to "+userEmail);
+        res.json({msg:"Email send successfully"});
+        
+    }catch(error){
+        sendError(res,"Unable to send Email");
     }
-
-    const OTP= generateOTP();
-    const verificationToken= new VerificationToken({
-        owner: newUser._id,
-        token:OTP
-    })
-    
-    await verificationToken.save();
-    await sendMail({
-        from:process.env.MAIL_USERNAME2,
-        to: newUser.email,
-        subject: "Verify your email address",
-        html:`<h1>Your otp to verify email is ${OTP}</h1>`
-    });
-    console.log("Email successfully sent to "+newUser.email);
     
 })
 
-router.post('/verifyemail',authenticate,verifyEmail);
+// authenticating user by checking the given otp
+router.post('/verifyemail',verifyEmail);
 
-router.post('/isEmailVerified',authenticate,isEmailVerified);
+router.post('/isEmailVerified',isEmailVerified);
+router.post('/forgotPassword', async(req,res)=>{
+    try{
+        console.log(req.body);
+        const {email,otp,password}= req.body;
+        const checkVerified = await verifyOtpToken(email,otp);
+        console.log("CheckVer : ",checkVerified)
+        if(checkVerified===true){
+            const user = await User.findOne({email:email});
+            user.password = password;
+            user.save();
+            res.json({msg:"password changed successfully"});
+        }else{
+            sendError(res,checkVerified)
+        }
+    }catch(error){
+        console.log(error);
+        // console.log();
+        sendError(res,"Failed to change password");
+    }
+    
+});
 
+// related to the data send by the esp
 router.post('/setSensorData',setSensorData);
-router.post('/getSensorData',authenticate,getSensorData);
-router.post('/updateSensorData',authenticate,updateSensorData);
+router.post('/getSensorData',getSensorData);
+router.post('/updateSensorData',updateSensorData);
 
+// related to esp configuration data
+router.post('/setEspConfigData',authenticate,setEspConfigData);
+router.post('/getEspConfigData',getEspConfigData);
+router.post('/fetchEspConfigData',authenticate,fetchEspConfigData);
+
+router.post('/saveSupplyList',authenticate,saveSupplyList);
+router.post('/getSupplyList',authenticate,getSupplyList);
 
 module.exports = router;
