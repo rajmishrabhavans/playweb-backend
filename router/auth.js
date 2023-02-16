@@ -7,7 +7,7 @@ const VerificationToken = require('../model/verificationToken');
 const authenticate = require('../middleware/authenticate');
 const { generateOTP, sendMail, verifyEmail, isEmailVerified, verifyOtpToken } = require('../utils/mail');
 const { sendError } = require('../utils/helper');
-const { setSensorData, getSensorData,updateSensorData, setEspConfigData, getEspConfigData, fetchEspConfigData, saveSupplyList, getSupplyList } = require('../utils/esp32');
+const { setSensorData, getSensorData,updateSensorData, setEspConfigData, getEspConfigData, fetchEspConfigData, saveSupplyList, getSupplyList, setHomeData, getHomeData, updateHomeData, setTankInfo, getTankInfo } = require('../utils/esp32');
 
 
 router.get('/', (req,res)=>{
@@ -229,6 +229,15 @@ router.post('/forgotPassword', async(req,res)=>{
 router.post('/setSensorData',setSensorData);
 router.post('/getSensorData',getSensorData);
 router.post('/updateSensorData',updateSensorData);
+
+// to fetch upper tank depth
+router.post('/setTankInfo',setTankInfo);
+router.post('/getTankInfo',getTankInfo);
+
+//upper to home tank
+router.post('/setHomeData',setHomeData);
+router.post('/getHomeData',getHomeData);
+router.post('/updateHomeData',updateHomeData);
 
 // related to esp configuration data
 router.post('/setEspConfigData',authenticate,setEspConfigData);
