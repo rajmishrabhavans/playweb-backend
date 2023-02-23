@@ -267,9 +267,10 @@ let skipHomeData= 0;
 exports.getHomeData = async (req, res) => {
     try {
         // checks if the data is updated
-        if (espHomeData.buildLed !== updateEspHomeData.buildLed) {
+        /*
+        if (espHomeData.supplyOn !== updateEspHomeData.supplyOn) {
             if (skipHomeData < 2) {
-                espHomeData.buildLed = updateEspHomeData.buildLed;
+                espHomeData.supplyOn = updateEspHomeData.supplyOn;
             } else {
                 // if data is not updated after 2 calls then updated data is changed to what we have
                 updateEspHomeData.buildLed = espHomeData.buildLed;
@@ -278,6 +279,7 @@ exports.getHomeData = async (req, res) => {
         }else {
             skiptime = 0;
         }
+        */
         console.log("getEspHomeData: ", espHomeData);
         res.json({ data: espHomeData, status: 'ok' })
     } catch (error) {
