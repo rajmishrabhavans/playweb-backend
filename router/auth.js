@@ -225,6 +225,30 @@ router.post('/forgotPassword', async(req,res)=>{
     
 });
 
+router.post('/home/contact', async(req,res)=>{
+    try {
+        const { firstName, lastName, subject, email, city, mobile, message} = req.body;
+
+        const contact = new ContactModel({
+            firstName,
+            lastName,
+            subject,
+            email,
+            city,
+            mobile, 
+            message
+        });
+
+        contact.save()
+            .then(result => res.status(201).send({msg: "Contact Register Successfully"}))
+            .catch(error => res.status(500).send(error))
+        
+    }catch(error){
+        return res.status(500).send(error);
+    }
+ }) 
+
+
 // related to the data send by the esp
 router.post('/setSensorData',setSensorData);
 router.post('/getSensorData',getSensorData);

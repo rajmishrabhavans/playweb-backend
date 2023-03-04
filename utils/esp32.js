@@ -213,16 +213,7 @@ exports.fetchEspConfigData = async (req, res) => {
 exports.saveSupplyList = async (req, res) => {
     try {
         let list = req.body.supplyList;
-        list = list.map((e)=>{
-            return(
-                {
-                    room:e.room,
-                    name:e.name,
-                    supplyOn:e.supplyOn
-                }
-            )
-        })
-        console.log(list);
+        console.log("List "+list);
         const userID= req.userID;
         if(!userID){
             return sendError("User not found");
@@ -235,6 +226,7 @@ exports.saveSupplyList = async (req, res) => {
             slist.save();
         }
         console.log("SupplyList Updated.");
+        console.log(slist);
         res.json({ msg: "Supply List  updated", status: 'ok' })
     } catch (error) {
         console.log(error);
@@ -252,9 +244,10 @@ exports.getSupplyList = async (req, res) => {
         let slist = await SupplyList.findOne({owner:userID});
         if(slist){
             res.json({ supplyList: slist, status: 'ok' })
-            console.log("Got SupplyList");
+            // console.log("Got SupplyList");
         }else{
             res.json({ msg: "Supply List not found!", status: 'ok' })
+            // console.log(slist)
         }
     } catch (error) {
         console.log(error);

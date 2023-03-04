@@ -8,18 +8,43 @@ const supplyListSchema= new mongoose.Schema({
         required: true
     },
     roomList:[
-        {
+        {   
+            wing:{
+                type:String,
+                required:true
+            },
             room:{
                 type:Number,
-                unique:true,
+                // unique:true,
                 required:true
             },
             name:{
                 type:String,
                 required:true
             },
+            email:{
+                type:String,
+                required: true
+            },
+            age:{
+                type:String,
+                required: true
+            },
+            mobile: {
+                type: Number,
+                required: true
+            },
+            ownership: {
+                type: String,
+                required: true
+            },
+            status: {
+                type: String,
+                required: true
+            },
             supplyOn:{
                 type:Boolean,
+                default: false,
                 required:true
             }
         }
