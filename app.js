@@ -9,7 +9,9 @@ const PORT= process.env.PORT || 8000;
 // app.options('*', cors())
 // app.use(cors({credentials: true, origin: ['http://localhost:3000','https://golden-praline-70af4e.netlify.app','https://playweb.me']}));
 app.use(cors({credentials: false, origin: "*"}));
-app.use(express.json())  //to get data from user as json format
+app.use(express.json({limit: "10mb",extended:true}));
+app.use(express.urlencoded({limit: "10mb",extended:true}));
+// app.use(express.json())  //to get data from user as json format
 app.use(require('./router/auth'));  //all restAPi calls
 
 if(process.env.NODE_ENV == "production"){

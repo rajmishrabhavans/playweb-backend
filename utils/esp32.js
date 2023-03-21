@@ -227,10 +227,10 @@ exports.saveSupplyList = async (req, res) => {
         }
         console.log("SupplyList Updated.");
         console.log(slist);
-        res.json({ msg: "Supply List  updated", status: 'ok' })
+        res.json({ msg: "Supply List updated", status: 'ok' })
     } catch (error) {
         console.log(error);
-        sendError(res,"Failed to update sensor data");
+        sendError(res,"Failed to update Supply List");
     }
 }
 
@@ -251,7 +251,29 @@ exports.getSupplyList = async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-        sendError(res,"Failed to update sensor data");
+        sendError(res,"Failed to update Supply List");
+    }
+}
+
+// updates the last supply time
+exports.updateSupplyDetails = async (req, res) => {
+    try{
+        const supplyDetails = req.body.data
+        const userID= req.userID;
+        if(!userID){
+            return sendError("User not found");
+        }
+        let slist = await SupplyList.findOne({owner:userID});
+        if(slist){
+            slist.updateSupplyDetails(supplyDetails)
+            console.log("SupplyDetails updated");
+            res.json({ msg: "SupplyDetails updated", status: 'ok' })
+        }else{
+            throw new Error("User not found in SupplyDetails")
+        }
+    } catch (error) {
+        console.log(error);
+        sendError(res,"Failed to update SupplyDetails");
     }
 }
 
@@ -273,7 +295,7 @@ exports.getHomeData = async (req, res) => {
             skiptime = 0;
         }
         */
-        console.log("getEspHomeData: ", espHomeData);
+        // console.log("getEspHomeData: ", espHomeData);
         res.json({ data: espHomeData, status: 'ok' })
     } catch (error) {
         console.log(error);

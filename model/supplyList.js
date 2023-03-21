@@ -7,6 +7,9 @@ const supplyListSchema= new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    lastSupply:{
+        type:String,
+    },
     roomList:[
         {   
             wing:{
@@ -51,11 +54,14 @@ const supplyListSchema= new mongoose.Schema({
     ]
 });
 
-supplyListSchema.methods.updateList = async function(owner,list){
+supplyListSchema.methods.updateList = async function(owner,list,lastSupply=undefined){
     try {
         if(list){
             this.owner= owner
             this.roomList= list;
+            if(lastSupply){
+                this.lastSupply= lastSupply
+            }
             this.save();
         }
         return true;
@@ -63,6 +69,13 @@ supplyListSchema.methods.updateList = async function(owner,list){
         console.log(error);
         return false;
     }
+}
+
+supplyListSchema.methods.updateSupplyDetails = async function(supplyDetails){
+    if(supplyDetails.lastSupply){
+        this.lastSupply= supplyDetails.lastSupply
+    }
+    this.save();
 }
 
 module.exports = mongoose.model("supplyList",supplyListSchema);

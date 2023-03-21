@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../model/userSchema');
+const Alert = require('../model/alertSchema')
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const ContactModel= require('../model/contactModel')
 const VerificationToken = require('../model/verificationToken');
 const authenticate = require('../middleware/authenticate');
 const { generateOTP, sendMail, verifyEmail, isEmailVerified, verifyOtpToken } = require('../utils/mail');
 const { sendError } = require('../utils/helper');
-const { setSensorData, getSensorData,updateSensorData, setEspConfigData, getEspConfigData, fetchEspConfigData, saveSupplyList, getSupplyList, setHomeData, getHomeData, updateHomeData, setTankInfo, getTankInfo } = require('../utils/esp32');
+const { setSensorData, getSensorData,updateSensorData, setEspConfigData, getEspConfigData, fetchEspConfigData, saveSupplyList, getSupplyList, setHomeData, getHomeData, updateHomeData, setTankInfo, getTankInfo, updateSupplyDetails } = require('../utils/esp32');
 
 
 router.get('/', (req,res)=>{
@@ -52,7 +53,7 @@ router.post('/register',async(req,res)=>{
         // console.log(req.body);
         //creating new user with given details
         
-        if(!creationdate) creationdate= new Date().toLocaleString();
+        if(!creationdate) creationdate= new Date().toISOString();
         const newUser= new User({name,email,phone,gender,password,creationdate});
 
         const token = await newUser.generateAuthToken();
@@ -131,6 +132,34 @@ router.post('/logout',authenticate, async(req,res)=>{
     }
 });
 
+
+//for contact us message
+router.post('/updateProfile',authenticate, async(req,res)=>{
+    try {
+        
+        const {name,email,phone,gender,profilePic}= req.body.data;
+        rootUser= req.rootUser;
+        if(name)
+        rootUser.name= name
+        if(email)
+        rootUser.email= email
+        if(phone)
+        rootUser.phone= phone
+        if(gender)
+        rootUser.gender= gender
+        if(profilePic)
+        rootUser.profilePic= profilePic
+        const result= await rootUser.save();
+
+        // const result = await User.updateOne({_id:rootUser._id},{$set:{messages:{name,email,phone,message}}})
+        console.log(result);
+        res.send({msg:"your profile successfully updated"});
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+
 //for contact us message
 router.post('/contact',authenticate, async(req,res)=>{
     try {
@@ -201,8 +230,8 @@ router.post('/sendemail',async(req,res)=>{
 
 // authenticating user by checking the given otp
 router.post('/verifyemail',verifyEmail);
-
 router.post('/isEmailVerified',isEmailVerified);
+
 router.post('/forgotPassword', async(req,res)=>{
     try{
         console.log(req.body);
@@ -227,7 +256,8 @@ router.post('/forgotPassword', async(req,res)=>{
 
 router.post('/home/contact', async(req,res)=>{
     try {
-        const { firstName, lastName, subject, email, city, mobile, message} = req.body;
+        console.log(req.body);
+        const { firstName, lastName, subject, email, city, mobile, message} = req.body.data;
 
         const contact = new ContactModel({
             firstName,
@@ -241,12 +271,54 @@ router.post('/home/contact', async(req,res)=>{
 
         contact.save()
             .then(result => res.status(201).send({msg: "Contact Register Successfully"}))
-            .catch(error => res.status(500).send(error))
+            .catch(error => {
+                console.log(error)
+                res.status(500).send(error)
+            })
         
     }catch(error){
+        console.log(error)
         return res.status(500).send(error);
     }
  }) 
+ 
+//for saving alerts to DB
+router.post('/saveAlerts',authenticate, async(req,res)=>{
+    try {
+        
+        const alertMsg= req.body.data;
+        rootUser= req.rootUser;
+        const alert= await Alert.findOne({owner:rootUser._id})
+        if(alert){
+            await alert.addAlert(alertMsg)
+        }else{
+            const nalert= new Alert({owner:rootUser._id,alerts:alertMsg});
+            await nalert.save()
+        }
+
+        console.log(alert);
+        res.send({msg:"Alert successfully saved"});
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+ 
+//for getting alerts from DB
+router.post('/getAlerts',authenticate, async(req,res)=>{
+    try {
+        rootUser= req.rootUser;
+        const alert= await Alert.findOne({owner:rootUser._id})
+        if(alert){
+            res.send({adminAlerts:alert,status:'ok'});
+            console.log(alert);
+        }else{
+            sendError(res,"User not found");
+        }
+    } catch (error) {
+        console.log(error);
+    }
+});
 
 
 // related to the data send by the esp
@@ -270,5 +342,6 @@ router.post('/fetchEspConfigData',authenticate,fetchEspConfigData);
 
 router.post('/saveSupplyList',authenticate,saveSupplyList);
 router.post('/getSupplyList',authenticate,getSupplyList);
+router.post('/updateSupplyDetails',authenticate,updateSupplyDetails);
 
 module.exports = router;

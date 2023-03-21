@@ -31,6 +31,10 @@ const userSchema= new mongoose.Schema({
         default:false,
         required:true
     },
+    profilePic:{
+        data:Buffer,
+        type:String,
+    },
     creationdate:{
         type:String,
     },
