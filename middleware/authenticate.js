@@ -8,7 +8,7 @@ const authenticate = async(req,res,next) => {
         // console.log("Cookies: ",cookies);
         // console.log("Headers: ",req.body);
         if(!cookies){
-            return res.status(401).json({error:"token not found!"});
+            return sendError(res,"token not found!",401);
         }
         const cookie= cookies.substring(cookies.indexOf('=')+1);
 

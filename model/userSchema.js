@@ -38,6 +38,12 @@ const userSchema= new mongoose.Schema({
     creationdate:{
         type:String,
     },
+    societyName:{
+        type:String,
+    },
+    societyLocation:{
+        type:String,
+    },
     tokens:[
         {
         token:{

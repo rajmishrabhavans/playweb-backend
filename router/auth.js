@@ -136,22 +136,32 @@ router.post('/logout',authenticate, async(req,res)=>{
 //for contact us message
 router.post('/updateProfile',authenticate, async(req,res)=>{
     try {
-        
-        const {name,email,phone,gender,profilePic}= req.body.data;
+        const {name,email,phone,gender,profilePic,societyName,societyLocation}= req.body.data;
         rootUser= req.rootUser;
         if(name)
-        rootUser.name= name
+            rootUser.name= name
         if(email)
-        rootUser.email= email
+            rootUser.email= email
         if(phone)
-        rootUser.phone= phone
+            rootUser.phone= phone
         if(gender)
-        rootUser.gender= gender
+            rootUser.gender= gender
         if(profilePic)
-        rootUser.profilePic= profilePic
+            rootUser.profilePic= profilePic
+        if(societyName){
+            // if(rootUser.societyName)
+            // rootUser.societyName= societyName
+            // else
+            await User.updateMany({_id:rootUser._id},{$set:{societyName}})
+        }
+        if(societyLocation){
+            // if(rootUser.societyLocation)
+            // rootUser.societyLocation= societyLocation
+            // else
+            await User.updateOne({_id:rootUser._id},{$set:{societyLocation}})
+        }
         const result= await rootUser.save();
-
-        // const result = await User.updateOne({_id:rootUser._id},{$set:{messages:{name,email,phone,message}}})
+        // console.log(result);
         console.log(result);
         res.send({msg:"your profile successfully updated"});
     } catch (error) {
