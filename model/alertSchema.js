@@ -7,9 +7,9 @@ const alertSchema= new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    // timeStamp:{
-    //     type:String,
-    // },
+    read:{
+        type:Number,
+    },
     alerts:[
         {   
             timeStamp:{
@@ -31,6 +31,15 @@ const alertSchema= new mongoose.Schema({
 alertSchema.methods.addAlert = async function(alert){
     try {
         this.alerts= this.alerts.concat(alert);
+        const res= await this.save();
+        return res;
+    } catch (error) {
+        console.log(error);
+    }
+}
+alertSchema.methods.markRead = async function(){
+    try {
+        this.read= this.alerts.length;
         const res= await this.save();
         return res;
     } catch (error) {

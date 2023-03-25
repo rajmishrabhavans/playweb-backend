@@ -14,6 +14,9 @@ const { setSensorData, getSensorData,updateSensorData, setEspConfigData, getEspC
 router.get('/', (req,res)=>{
     res.send('home page')
 });
+router.post('/testConnection', (req,res)=>{
+    res.send({msg:"connection ok",status:"ok"})
+});
 
 //check if a email or phone already exists
 router.post('/checkUser',async(req,res)=>{
@@ -80,12 +83,15 @@ router.post('/login',async(req,res)=>{
     try {
         //getting email and pass to variable email and password using destructuring
         const {email,password} = req.body;
-        if(!email || !password) return res.json({error:"Please fill all details"});
+        if(!email || !password) return sendError(res,"Please fill all details");
         const checkUser= await User.findOne({email});  //check if email exists in database
         if(checkUser){
             //checking if given pass is same as stored hashed password
             const checkPass = await bcrypt.compare(password,checkUser.password);
             if(checkPass){
+                if(!checkUser.isAuthenticated){
+                    return sendError(res,"unAuthorized",403)
+                }
                 const token = await checkUser.generateAuthToken();
                 res.cookie('jwtoken',token,{
                     expires: new Date(Date.now()+2592000000),
@@ -98,7 +104,7 @@ router.post('/login',async(req,res)=>{
                     userData: checkUser
                 });
             }else{
-                res.status(422).json({error:"Incorrect password"});
+                sendError(res,"Incorrect password");
             }
         }else{
             res.status(422).json({error:"Invalid User Credentials"});
@@ -302,11 +308,11 @@ router.post('/saveAlerts',authenticate, async(req,res)=>{
         if(alert){
             await alert.addAlert(alertMsg)
         }else{
-            const nalert= new Alert({owner:rootUser._id,alerts:alertMsg});
+            const nalert= new Alert({owner:rootUser._id,alerts:alertMsg,read:0});
             await nalert.save()
         }
 
-        console.log(alert);
+        // console.log(alert);
         res.send({msg:"Alert successfully saved"});
     } catch (error) {
         console.log(error);
@@ -318,10 +324,16 @@ router.post('/saveAlerts',authenticate, async(req,res)=>{
 router.post('/getAlerts',authenticate, async(req,res)=>{
     try {
         rootUser= req.rootUser;
+        let markRead;
+        if(req.body.data){
+            markRead= req.body.data.markRead;
+        }
+        // const ualert= await Alert.updateOne({owner:rootUser._id},{$set:{read:markRead}})
         const alert= await Alert.findOne({owner:rootUser._id})
+        if(markRead) await alert.markRead()
         if(alert){
             res.send({adminAlerts:alert,status:'ok'});
-            console.log(alert);
+            // console.log(alert);
         }else{
             sendError(res,"User not found");
         }
