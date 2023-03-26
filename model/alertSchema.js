@@ -31,6 +31,9 @@ const alertSchema= new mongoose.Schema({
 alertSchema.methods.addAlert = async function(alert){
     try {
         this.alerts= this.alerts.concat(alert);
+        if(this.alerts.length>50){
+            this.alerts= this.alerts.shift();
+        }
         const res= await this.save();
         return res;
     } catch (error) {

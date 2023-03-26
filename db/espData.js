@@ -63,6 +63,7 @@ exports.espConfigData ={
     LTR1: 5.55,
     LTR2: 4.95,
     maxFill: 95,
+    minFill: 10,
     checkDepth:false
 }
 

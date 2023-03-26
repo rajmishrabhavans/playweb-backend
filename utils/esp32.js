@@ -176,8 +176,8 @@ const updateEspConfigData = async (userID) => {
     if(config){
         config.updateData(espConfigData);
     }else{
-        const {UTDepth,LTDepth,UTShape,LTShape,UTR1,UTR2,LTR1,LTR2,maxFill} = espConfigData;
-        const newConfig = new ConfigureData({owner:userID,UTDepth,LTDepth,UTShape,LTShape,UTR1,UTR2,LTR1,LTR2,maxFill});
+        const {UTDepth,LTDepth,UTShape,LTShape,UTR1,UTR2,LTR1,LTR2,maxFill,minFill} = espConfigData;
+        const newConfig = new ConfigureData({owner:userID,UTDepth,LTDepth,UTShape,LTShape,UTR1,UTR2,LTR1,LTR2,maxFill,minFill});
         newConfig.save();
     }
 }

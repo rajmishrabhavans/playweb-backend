@@ -42,6 +42,10 @@ const configureDataSchema= new mongoose.Schema({
     maxFill:{
         type:Number,
         required:true
+    },
+    minFill:{
+        type:Number,
+        required:true
     }
 });
 
@@ -56,6 +60,7 @@ configureDataSchema.methods.updateData = async function(data){
         this.LTR1= data.LTR1;
         this.LTR2= data.LTR2;
         this.maxFill= data.maxFill;
+        this.minFill= data.minFill;
         this.save();
         return true;
     } catch (error) {

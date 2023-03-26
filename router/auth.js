@@ -59,19 +59,19 @@ router.post('/register',async(req,res)=>{
         if(!creationdate) creationdate= new Date().toISOString();
         const newUser= new User({name,email,phone,gender,password,creationdate});
 
-        const token = await newUser.generateAuthToken();
-        res.cookie('jwtoken',token,{
-            expires: new Date(Date.now()+(1000*60*60)),
-            httpOnly:false
-        })
-        console.log(token);
+        // const token = await newUser.generateAuthToken();
+        // res.cookie('jwtoken',token,{
+        //     expires: new Date(Date.now()+(1000*60*60)),
+        //     httpOnly:false
+        // })
+        // console.log(token);
 
         await newUser.save();  //adding user to DB
         console.log(newUser);
         res.status(201).json({
             message:"User Registeration successful",
-            token,
-            userData: newUser
+            // token,
+            // userData: newUser
         });
     }catch (error) {
         console.log(error);
@@ -329,6 +329,7 @@ router.post('/getAlerts',authenticate, async(req,res)=>{
             markRead= req.body.data.markRead;
         }
         // const ualert= await Alert.updateOne({owner:rootUser._id},{$set:{read:markRead}})
+        // console.log("UserId:",rootUser._id);
         const alert= await Alert.findOne({owner:rootUser._id})
         if(markRead) await alert.markRead()
         if(alert){
