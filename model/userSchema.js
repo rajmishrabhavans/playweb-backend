@@ -39,7 +39,7 @@ const userSchema= new mongoose.Schema({
         type:String,
     },
     isAuthenticated:{
-        type:String,
+        type:Boolean,
         default:false,
     },
     societyName:{
