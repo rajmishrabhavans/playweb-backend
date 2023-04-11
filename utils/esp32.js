@@ -11,7 +11,7 @@ exports.setSensorData = async (req, res) => {
         // console.log("setEspData: ", espData);
         //console.log("espData: ",espData);
 
-        if (sensorData.motorOn && sensorData.tankFull) {
+        if (sensorData.motorOn && (sensorData.tankFull || sensorData.lowerTank<10)) {
             updateEspData.motorOn = false;
         }
         res.json({ msg: "Sensor data recieved", udata: updateEspData });
