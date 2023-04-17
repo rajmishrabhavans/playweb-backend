@@ -33,6 +33,7 @@ alertSchema.methods.addAlert = async function(alert){
         this.alerts= this.alerts.concat(alert);
         if(this.alerts.length>50){
             this.alerts= this.alerts.shift();
+            this.read= this.read-1;
         }
         const res= await this.save();
         return res;
